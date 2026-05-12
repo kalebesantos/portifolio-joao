@@ -1,59 +1,105 @@
+
 import React from 'react';
+import { WebGLShader } from './ui/WebGLShader';
+import { LiquidButton } from './ui/LiquidButton';
+import { ChevronRight, Instagram, Linkedin, MessageCircle } from 'lucide-react';
 
 interface HeroProps {
   lang: 'pt' | 'en';
 }
 
 export const Hero: React.FC<HeroProps> = ({ lang }) => {
-  const title = lang === 'pt' ? 'Editor de vídeo focado em performance' : 'Video editor focused on performance';
-  const subtitle = lang === 'pt'
-    ? 'Crio vídeos de alto impacto para marcas, lançamentos e redes sociais.'
-    : 'I create high-impact videos for brands, launches and social media.';
-  const cta = lang === 'pt' ? 'Veja meu portfólio' : 'See my portfolio';
+  const socialLinks = [
+    { icon: <Instagram size={18} />, url: 'https://www.instagram.com/jvf_editor/?utm_source=ig_web_button_share_sheet', label: 'Instagram' },
+    { icon: <Linkedin size={18} />, url: 'https://www.linkedin.com/in/jo%C3%A3o-ferrari-ba716021b/', label: 'LinkedIn' },
+    { icon: <MessageCircle size={18} />, url: 'https://wa.me/5519988067736', label: 'WhatsApp' },
+  ];
+
+  const t = {
+    role: lang === 'pt' ? 'Editor de Vídeo' : 'Video Editor',
+    desc: lang === 'pt' 
+      ? 'Ajudo criadores e marcas a aumentarem seus resultados através da pós-produção.'
+      : 'I help creators and brands increase their results through post-production.',
+    available: lang === 'pt' ? 'Disponível para novos projetos' : 'Available for new projects',
+    contact: lang === 'pt' ? 'Fale Comigo' : 'Contact Me',
+    viewPortfolio: lang === 'pt' ? 'Ver Portfólio' : 'View Portfolio',
+  };
+
+  const handlePortfolioClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const portfolioSection = document.getElementById('portfolio');
+    if (portfolioSection) {
+      const navHeight = 80;
+      const elementPosition = portfolioSection.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   return (
-    <section id="home" className="min-h-screen flex items-center pt-24">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr] items-center">
-          <div>
-            <p className="text-xs uppercase tracking-[0.5em] text-white/40 mb-6">{lang === 'pt' ? 'Projeto de vídeo' : 'Video project'}</p>
-            <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-tight text-white">
-              {title}
-            </h1>
-            <p className="mt-8 max-w-2xl text-base md:text-lg text-white/70 leading-relaxed">
-              {subtitle}
-            </p>
-            <div className="mt-10 flex flex-wrap gap-4">
-              <a
-                href="#portfolio"
-                className="inline-flex items-center justify-center rounded-full bg-brand-blue px-8 py-4 text-sm font-bold uppercase tracking-[0.3em] text-black transition hover:bg-white"
-              >
-                {cta}
-              </a>
-              <a
-                href="https://wa.me/5519988067736"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-8 py-4 text-sm font-bold uppercase tracking-[0.3em] text-white transition hover:bg-white hover:text-black"
-              >
-                {lang === 'pt' ? 'Vamos conversar' : 'Let’s talk'}
-              </a>
-            </div>
+    <section className="relative min-h-[85vh] flex w-full flex-col items-center justify-center overflow-hidden bg-brand-black z-20 pt-16">
+      <WebGLShader />
+      
+      <div className="relative z-10 border border-[#27272a] p-2 w-full mx-auto max-w-4xl animate-fade-in shadow-2xl">
+        <main className="relative border border-[#27272a] py-12 px-6 md:py-20 overflow-hidden text-center bg-black/60 backdrop-blur-sm">
+          <h1 className="mb-2 text-white text-center text-5xl font-extrabold tracking-tighter md:text-[clamp(2.5rem,8vw,5rem)] leading-none uppercase italic">
+            João Ferrari
+          </h1>
+          
+          <h2 className="mb-6 text-white/60 text-center text-lg md:text-xl font-bold tracking-tight uppercase">
+            {t.role}
+          </h2>
+
+          <p className="text-white/60 px-6 text-center text-xs md:text-sm lg:text-base max-w-2xl mx-auto mb-8 leading-relaxed">
+            {t.desc}
+          </p>
+
+          <div className="my-6 flex items-center justify-center gap-2">
+            <span className="relative flex h-3 w-3 items-center justify-center">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-blue opacity-75"></span>
+              <span className="relative flex h-2 w-2 rounded-full bg-brand-blue"></span>
+            </span>
+            <p className="text-[10px] text-brand-blue font-bold uppercase tracking-widest">{t.available}</p>
+          </div>
+          
+          <div className="flex flex-col md:flex-row items-center justify-center gap-6 mt-8"> 
+            <a href="https://wa.me/5519988067736" target="_blank" rel="noopener noreferrer">
+              <LiquidButton className="text-white border border-[#27272a] rounded-full" size="lg">
+                {t.contact}
+              </LiquidButton> 
+            </a>
+            <a 
+              href="#portfolio" 
+              onClick={handlePortfolioClick}
+              className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 hover:text-white transition-all flex items-center gap-2 cursor-pointer"
+            >
+              {t.viewPortfolio} <ChevronRight size={14} />
+            </a>
           </div>
 
-          <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl">
-            <div className="space-y-4">
-              <div className="h-2 w-20 rounded-full bg-brand-blue"></div>
-              <div className="h-2 w-12 rounded-full bg-white/40"></div>
-              <div className="h-2 w-16 rounded-full bg-white/30"></div>
-            </div>
-            <div className="mt-10 rounded-[1.5rem] bg-black/80 p-6 shadow-inner">
-              <p className="text-sm uppercase tracking-[0.35em] text-white/50 mb-4">{lang === 'pt' ? 'Destaque' : 'Highlight'}</p>
-              <h2 className="text-2xl font-bold text-white">{lang === 'pt' ? 'Vídeos que convertem' : 'Videos that convert'}</h2>
-              <p className="mt-4 text-sm text-white/60">{lang === 'pt' ? 'Estratégia, desempenho e criatividade unidos para gerar resultados.' : 'Strategy, performance and creativity combined to drive results.'}</p>
-            </div>
+          <div className="flex items-center justify-center gap-6 mt-10">
+            {socialLinks.map((link, idx) => (
+              <a 
+                key={idx} 
+                href={link.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-white/40 hover:text-brand-blue transition-all duration-300 transform hover:scale-110"
+                title={link.label}
+              >
+                {link.icon}
+              </a>
+            ))}
           </div>
-        </div>
+        </main>
+      </div>
+
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-20">
+        <div className="w-[1px] h-10 bg-gradient-to-b from-white to-transparent" />
       </div>
     </section>
   );
