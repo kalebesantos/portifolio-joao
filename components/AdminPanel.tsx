@@ -488,7 +488,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
               </div>
             </div>
             <div className="grid grid-cols-1 gap-8">
-              {(['reels', 'video'] as const).map(sectionKey => {
+              {(['reels', 'video'] as const).map((sectionKey) => {
                 const sectionItems = sortedLocalProjects.filter(project => project.section === sectionKey);
                 if (sectionItems.length === 0) return null;
 
@@ -502,7 +502,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
                       <span className="text-[10px] uppercase tracking-[0.35em] text-brand-lime">Arraste para reordenar</span>
                     </div>
                     <div className="space-y-3">
-                      {sectionItems.map((project, index) => (
+                      {sectionItems.map((project, index) => {
+                        return (
                           <div
                             key={project.id}
                             draggable
@@ -540,7 +541,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
                               </button>
                             </div>
                           </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 );

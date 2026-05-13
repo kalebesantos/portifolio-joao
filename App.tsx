@@ -100,6 +100,14 @@ const InstagramColorIcon = () => (
   </svg>
 );
 
+const normalizeProjects = (projects: VideoProject[]): VideoProject[] => {
+  return projects.map((project, index) => ({
+    ...project,
+    orderPt: project.orderPt ?? index,
+    orderEn: project.orderEn ?? index,
+  }));
+};
+
 const PortfolioSlider = ({ title, projects, isVertical, onSelect }: { title: string, projects: VideoProject[], isVertical: boolean, onSelect: (v: VideoProject) => void }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
