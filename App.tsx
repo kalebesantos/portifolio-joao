@@ -9,6 +9,8 @@ import { Settings, Eye, DollarSign, Clapperboard, Play, X, Instagram, Linkedin, 
 import { motion } from 'framer-motion';
 
 const ADMIN_PATH = '/admin';
+const ADMIN_USERNAME = 'admin';
+const ADMIN_PASSWORD = 'admin';
 
 const INITIAL_PROJECTS: VideoProject[] = [
   { 
@@ -190,6 +192,10 @@ const PortfolioSlider = ({ title, projects, isVertical, onSelect }: { title: str
 const App: React.FC = () => {
   const [projects, setProjects] = useState<VideoProject[]>([]);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [adminAuthenticated, setAdminAuthenticated] = useState(false);
+  const [adminLoginUsername, setAdminLoginUsername] = useState('');
+  const [adminLoginPassword, setAdminLoginPassword] = useState('');
+  const [adminLoginError, setAdminLoginError] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<VideoProject | null>(null);
   const [lang, setLang] = useState<'pt' | 'en'>('pt');
 
@@ -202,6 +208,9 @@ const App: React.FC = () => {
       setLang(savedLang);
     }
 
+    const savedAdminAuth = localStorage.getItem('ferrari_admin_authenticated') === 'true';
+    setAdminAuthenticated(savedAdminAuth);
+
     const normalizedPath = window.location.pathname.replace(/\/+$/, '');
     const normalizedAdminPath = ADMIN_PATH.replace(/\/+$/, '');
     const isAdminPath = normalizedPath === normalizedAdminPath;
@@ -210,6 +219,40 @@ const App: React.FC = () => {
       setIsAdminOpen(true);
     }
   }, []);
+
+  const handleAdminLogin = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (adminLoginUsername === ADMIN_USERNAME && adminLoginPassword === ADMIN_PASSWORD) {
+      setAdminAuthenticated(true);
+      localStorage.setItem('ferrari_admin_authenticated', 'true');
+      setAdminLoginError('');
+      setIsAdminOpen(true);
+      if (window.location.pathname.replace(/\/+$/, '') !== ADMIN_PATH.replace(/\/+$/, '')) {
+        window.history.replaceState(null, '', ADMIN_PATH);
+      }
+      return;
+    }
+    setAdminLoginError('Usuário ou senha inválidos.');
+  };
+
+  const handleAdminLogout = () => {
+    setAdminAuthenticated(false);
+    localStorage.removeItem('ferrari_admin_authenticated');
+    setAdminLoginUsername('');
+    setAdminLoginPassword('');
+    setAdminLoginError('');
+    setIsAdminOpen(false);
+    if (window.location.pathname.replace(/\/+$/, '') === ADMIN_PATH.replace(/\/+$/, '')) {
+      window.history.replaceState(null, '', '/');
+    }
+  };
+
+  const closeAdminPanel = () => {
+    setIsAdminOpen(false);
+    if (window.location.pathname.replace(/\/+$/, '') === ADMIN_PATH.replace(/\/+$/, '')) {
+      window.history.replaceState(null, '', '/');
+    }
+  };
 
   const toggleLang = () => {
     const newLang = lang === 'pt' ? 'en' : 'pt';
@@ -453,7 +496,54 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {isAdminOpen && (
+      {isAdminOpen && !adminAuthenticated && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/90">
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-brand-dark-gray p-8 shadow-2xl">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold">Admin Login</h2>
+              <p className="text-sm text-white/50">Digite usuário e senha para acessar o painel.</p>
+            </div>
+            <form onSubmit={handleAdminLogin} className="space-y-4">
+              <div>
+                <label className="block text-[10px] uppercase tracking-[0.35em] text-white/50 mb-2">Usuário</label>
+                <input
+                  type="text"
+                  value={adminLoginUsername}
+                  onChange={(e) => setAdminLoginUsername(e.target.value)}
+                  className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-white outline-none focus:border-brand-lime"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase tracking-[0.35em] text-white/50 mb-2">Senha</label>
+                <input
+                  type="password"
+                  value={adminLoginPassword}
+                  onChange={(e) => setAdminLoginPassword(e.target.value)}
+                  className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-white outline-none focus:border-brand-lime"
+                />
+              </div>
+              {adminLoginError && <p className="text-sm text-red-400">{adminLoginError}</p>}
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={closeAdminPanel}
+                  className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white transition hover:bg-white/10"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 rounded-2xl bg-brand-lime px-4 py-3 text-black font-bold uppercase tracking-[0.1em] transition hover:bg-lime-500"
+                >
+                  Entrar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {isAdminOpen && adminAuthenticated && (
         <AdminPanel 
           projects={projects} 
           onSave={(newP) => {
@@ -464,12 +554,7 @@ const App: React.FC = () => {
               window.history.replaceState(null, '', '/');
             }
           }} 
-          onClose={() => {
-            setIsAdminOpen(false);
-            if (window.location.pathname.replace(/\/+$/, '') === ADMIN_PATH.replace(/\/+$/, '')) {
-              window.history.replaceState(null, '', '/');
-            }
-          }} 
+          onClose={closeAdminPanel} 
         />
       )}
     </div>
