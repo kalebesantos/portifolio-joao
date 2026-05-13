@@ -52,8 +52,33 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
     return '';
   };
 
-  const autoExtractFrame = (url: string) => {
-    const thumbnailUrl = getSuggestedThumbnail(url);
+  const fetchVimeoThumbnail = async (url: string) => {
+    if (!url.includes('vimeo.com')) return '';
+
+    try {
+      const videoId = url.split('/').pop()?.split('?')[0];
+      if (!videoId) return '';
+
+      const response = await fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${videoId}`);
+      const data = await response.json();
+      return data.thumbnail_url || '';
+    } catch (error) {
+      console.error('Erro ao buscar thumbnail do Vimeo:', error);
+      return '';
+    }
+  };
+
+  const autoExtractFrame = async (url: string) => {
+    if (!url) return;
+
+    let thumbnailUrl = '';
+
+    if (url.includes('vimeo.com')) {
+      thumbnailUrl = await fetchVimeoThumbnail(url);
+    } else {
+      thumbnailUrl = getSuggestedThumbnail(url);
+    }
+
     if (thumbnailUrl) {
       setFormData(prev => ({ ...prev, thumbnail: thumbnailUrl }));
     }
@@ -244,13 +269,29 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
                       placeholder={formData.isPhoto ? "Deixe vazio para foto estática" : "Cole o link do Vimeo ou YouTube aqui..."}
                     />
                     {!formData.isPhoto && formData.videoUrl && (
-                      <button
-                        type="button"
-                        onClick={() => autoExtractFrame(formData.videoUrl)}
-                        className="self-start bg-brand-blue text-white px-4 py-2 text-xs uppercase tracking-[0.3em] rounded hover:bg-brand-blue/80 transition-all"
-                      >
-                        Atualizar Thumbnail Sugerida
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => autoExtractFrame(formData.videoUrl)}
+                          className="bg-brand-blue text-white px-4 py-2 text-xs uppercase tracking-[0.3em] rounded hover:bg-brand-blue/80 transition-all"
+                        >
+                          Atualizar Thumbnail Sugerida
+                        </button>
+                        {formData.videoUrl.includes('vimeo.com') && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const thumbnail = await fetchVimeoThumbnail(formData.videoUrl);
+                              if (thumbnail) {
+                                setFormData(prev => ({ ...prev, thumbnail }));
+                              }
+                            }}
+                            className="bg-red-600 text-white px-4 py-2 text-xs uppercase tracking-[0.3em] rounded hover:bg-red-700 transition-all"
+                          >
+                            Puxar do Vimeo
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                   {!formData.isPhoto && (
