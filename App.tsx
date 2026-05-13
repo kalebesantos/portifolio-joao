@@ -10,7 +10,7 @@ import { motion } from 'framer-motion';
 
 const ADMIN_PATH = '/admin';
 const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'admin';
+const ADMIN_PASSWORD = 'senha123';
 
 const INITIAL_PROJECTS: VideoProject[] = [
   { 
@@ -200,18 +200,9 @@ const App: React.FC = () => {
   const [lang, setLang] = useState<'pt' | 'en'>('pt');
 
   useEffect(() => {
-    // Carregar projetos da API
-    fetch('/api/projects')
-      .then(response => response.json())
-      .then(data => {
-        setProjects(normalizeProjects(data));
-      })
-      .catch(error => {
-        console.error('Erro ao carregar projetos:', error);
-        // Fallback para projetos iniciais se a API falhar
-        setProjects(normalizeProjects(INITIAL_PROJECTS));
-      });
-
+    const savedProjects = localStorage.getItem('ferrari_portfolio_v2');
+    setProjects(savedProjects ? normalizeProjects(JSON.parse(savedProjects)) : normalizeProjects(INITIAL_PROJECTS));
+    
     const savedLang = localStorage.getItem('ferrari_lang');
     if (savedLang === 'en' || savedLang === 'pt') {
       setLang(savedLang);
@@ -555,30 +546,14 @@ const App: React.FC = () => {
       {isAdminOpen && adminAuthenticated && (
         <AdminPanel 
           projects={projects} 
-          onSave={async (newP) => {
-            try {
-              const response = await fetch('/api/projects', {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newP),
-              });
-
-              if (response.ok) {
-                setProjects(newP);
-                setIsAdminOpen(false);
-                if (window.location.pathname.replace(/\/+$/, '') === ADMIN_PATH.replace(/\/+$/, '')) {
-                  window.history.replaceState(null, '', '/');
-                }
-              } else {
-                alert('Erro ao salvar projetos. Tente novamente.');
-              }
-            } catch (error) {
-              console.error('Erro ao salvar:', error);
-              alert('Erro ao salvar projetos. Verifique sua conexão.');
+          onSave={(newP) => {
+            setProjects(newP);
+            localStorage.setItem('ferrari_portfolio_v2', JSON.stringify(newP));
+            setIsAdminOpen(false);
+            if (window.location.pathname.replace(/\/+$/, '') === ADMIN_PATH.replace(/\/+$/, '')) {
+              window.history.replaceState(null, '', '/');
             }
-          }}
+          }} 
           onClose={closeAdminPanel} 
         />
       )}
