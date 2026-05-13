@@ -42,7 +42,7 @@ export const Navbar: React.FC<NavbarProps> = ({ lang, toggleLang }) => {
           JOÃO FERRARI
         </div>
         
-        <nav className="flex items-center space-x-6 md:space-x-12 text-[10px] font-bold tracking-[0.2em] uppercase">
+        <nav className="flex items-center space-x-4 sm:space-x-6 md:space-x-12 text-[10px] font-bold tracking-[0.2em] uppercase">
           <a 
             href="#portfolio" 
             onClick={handlePortfolioClick}
@@ -69,7 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({ lang, toggleLang }) => {
             href="https://wa.me/5519988067736" 
             target="_blank" 
             rel="noopener noreferrer" 
-            className="px-6 py-2 border border-white/20 rounded-full hover:bg-white hover:text-black transition-all"
+            className="px-4 sm:px-6 py-2 border border-white/20 rounded-full hover:bg-white hover:text-black transition-all text-[9px] sm:text-[10px]"
           >
             {navItems.contact}
           </a>

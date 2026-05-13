@@ -26,7 +26,7 @@ export const About: React.FC = () => {
           
           <div className="w-full md:w-2/3">
             <h2 className="text-brand-blue text-sm font-bold uppercase tracking-[0.3em] mb-4">Trajetória Profissional</h2>
-            <h3 className="text-4xl md:text-5xl font-bold mb-6 text-brand-dark">Editor de vídeo com 21 anos, focado em <span className="text-brand-blue">IA e Escala.</span></h3>
+            <h3 className="text-3xl xs:text-4xl md:text-5xl font-bold mb-6 text-brand-dark">Editor de vídeo com 21 anos, focado em <span className="text-brand-blue">IA e Escala.</span></h3>
             <p className="text-brand-gray-text text-xl mb-8 leading-relaxed">
               Experiência sólida em marketing e liderança de equipes criativas em startups de inteligência artificial. Minha abordagem une técnica cinematográfica com análise de dados para maximizar retenção e conversão.
             </p>

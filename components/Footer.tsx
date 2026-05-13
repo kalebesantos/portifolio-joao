@@ -14,10 +14,10 @@ export const Footer: React.FC = () => {
             </p>
           </div>
           
-          <div className="flex gap-8">
-            <a href="#" className="hover:text-brand-blue transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-widest"><Instagram size={18} /> Instagram</a>
-            <a href="#" className="hover:text-brand-blue transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-widest"><Linkedin size={18} /> LinkedIn</a>
-            <a href="mailto:contato@ferrarivideo.com" className="hover:text-brand-blue transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-widest"><Mail size={18} /> E-mail</a>
+          <div className="flex gap-6 sm:gap-8">
+            <a href="#" className="hover:text-brand-blue transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-widest"><Instagram size={16} className="sm:w-[18px] sm:h-[18px]" /> Instagram</a>
+            <a href="#" className="hover:text-brand-blue transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-widest"><Linkedin size={16} className="sm:w-[18px] sm:h-[18px]" /> LinkedIn</a>
+            <a href="mailto:contato@ferrarivideo.com" className="hover:text-brand-blue transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-widest"><Mail size={16} className="sm:w-[18px] sm:h-[18px]" /> E-mail</a>
           </div>
 
           <button 

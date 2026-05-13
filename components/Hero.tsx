@@ -46,7 +46,7 @@ export const Hero: React.FC<HeroProps> = ({ lang }) => {
       
       <div className="relative z-10 border border-[#27272a] p-2 w-full mx-auto max-w-4xl animate-fade-in shadow-2xl">
         <main className="relative border border-[#27272a] py-12 px-6 md:py-20 overflow-hidden text-center bg-black/60 backdrop-blur-sm">
-          <h1 className="mb-2 text-white text-center text-5xl font-extrabold tracking-tighter md:text-[clamp(2.5rem,8vw,5rem)] leading-none uppercase italic">
+          <h1 className="mb-2 text-white text-center text-4xl xs:text-5xl font-extrabold tracking-tighter md:text-[clamp(2.5rem,8vw,5rem)] leading-none uppercase italic">
             João Ferrari
           </h1>
           
@@ -54,7 +54,7 @@ export const Hero: React.FC<HeroProps> = ({ lang }) => {
             {t.role}
           </h2>
 
-          <p className="text-white/60 px-6 text-center text-xs md:text-sm lg:text-base max-w-2xl mx-auto mb-8 leading-relaxed">
+          <p className="text-white/60 px-4 sm:px-6 text-center text-sm xs:text-base lg:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
             {t.desc}
           </p>
 
@@ -66,7 +66,7 @@ export const Hero: React.FC<HeroProps> = ({ lang }) => {
             <p className="text-[10px] text-brand-blue font-bold uppercase tracking-widest">{t.available}</p>
           </div>
           
-          <div className="flex flex-col md:flex-row items-center justify-center gap-6 mt-8"> 
+          <div className="flex flex-col xs:flex-row items-center justify-center gap-4 sm:gap-6 mt-8"> 
             <a href="https://wa.me/5519988067736" target="_blank" rel="noopener noreferrer">
               <LiquidButton className="text-white border border-[#27272a] rounded-full" size="lg">
                 {t.contact}
@@ -81,7 +81,7 @@ export const Hero: React.FC<HeroProps> = ({ lang }) => {
             </a>
           </div>
 
-          <div className="flex items-center justify-center gap-6 mt-10">
+          <div className="flex items-center justify-center gap-4 sm:gap-6 mt-8 sm:mt-10">
             {socialLinks.map((link, idx) => (
               <a 
                 key={idx} 

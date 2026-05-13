@@ -110,24 +110,27 @@ const normalizeProjects = (projects: VideoProject[]): VideoProject[] => {
   }));
 };
 
-const PortfolioSlider = ({ title, projects, isVertical, onSelect }: { title: string, projects: VideoProject[], isVertical: boolean, onSelect: (v: VideoProject) => void }) => {
+const PortfolioSlider = ({ title, projects, isVertical, onSelect, showAll = true }: { title: string, projects: VideoProject[], isVertical: boolean, onSelect: (v: VideoProject) => void, showAll?: boolean }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
       const { clientWidth } = scrollRef.current;
       const scrollAmount = window.innerWidth > 768 ? clientWidth : clientWidth * 0.8;
-      scrollRef.current.scrollBy({ 
-        left: direction === 'left' ? -scrollAmount : scrollAmount, 
-        behavior: 'smooth' 
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
       });
     }
   };
 
   if (projects.length === 0) return null;
 
+  // Para reels, mostrar apenas 3 primeiros se showAll for false
+  const displayProjects = showAll ? projects : projects.slice(0, 3);
+
   return (
-    <motion.div 
+    <motion.div
       variants={revealVariants}
       initial="hidden"
       whileInView="visible"
@@ -135,52 +138,56 @@ const PortfolioSlider = ({ title, projects, isVertical, onSelect }: { title: str
       className="mb-20"
     >
       <div className="flex justify-between items-end mb-8 px-2">
-        <h4 className="text-xl md:text-2xl font-bold tracking-tight uppercase italic border-l-4 border-brand-blue pl-4">
+        <h4 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight uppercase italic border-l-4 border-brand-blue pl-4">
           {title}
         </h4>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={() => scroll('left')}
-            className="p-3 rounded-full border border-white/10 bg-white/5 hover:bg-brand-blue hover:text-white transition-all active:scale-90"
+            className="p-2 sm:p-3 rounded-full border border-white/10 bg-white/5 hover:bg-brand-blue hover:text-white transition-all active:scale-90"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
           </button>
-          <button 
+          <button
             onClick={() => scroll('right')}
-            className="p-3 rounded-full border border-white/10 bg-white/5 hover:bg-brand-blue hover:text-white transition-all active:scale-90"
+            className="p-2 sm:p-3 rounded-full border border-white/10 bg-white/5 hover:bg-brand-blue hover:text-white transition-all active:scale-90"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={18} className="sm:w-5 sm:h-5" />
           </button>
         </div>
       </div>
 
-      <div 
+      <div
         ref={scrollRef}
-        className="flex gap-6 overflow-x-auto hide-scrollbar pb-6 px-2 snap-x snap-mandatory"
+        className="flex gap-2 sm:gap-3 md:gap-4 lg:gap-6 overflow-x-auto hide-scrollbar pb-6 px-2 snap-x snap-mandatory"
       >
-        {projects.map((project) => (
-          <div 
+        {displayProjects.map((project) => (
+          <div
             key={project.id}
             onClick={() => onSelect(project)}
-            className={`flex-none snap-start group relative rounded-2xl overflow-hidden cursor-pointer border border-white/5 bg-black shadow-2xl transition-all duration-300 hover:border-brand-blue/40 ${isVertical ? 'w-[240px] md:w-[calc(28%-1rem)] aspect-[9/16]' : 'w-[260px] md:w-[calc(30%-1rem)] aspect-video'}`}
+            className={`flex-none snap-start group relative rounded-2xl overflow-hidden cursor-pointer border border-white/5 bg-black shadow-2xl transition-all duration-300 hover:border-brand-blue/40 ${
+              isVertical
+                ? 'w-[160px] xs:w-[180px] sm:w-[200px] md:w-[240px] lg:w-[calc(28%-1rem)] aspect-[9/16]'
+                : 'w-[180px] xs:w-[200px] sm:w-[240px] md:w-[260px] lg:w-[calc(30%-1rem)] aspect-video'
+            }`}
           >
-            <img 
-              src={project.thumbnail} 
-              className={`w-full h-full object-cover opacity-100 transition-all duration-500 group-hover:scale-110`} 
+            <img
+              src={project.thumbnail}
+              className={`w-full h-full object-cover opacity-100 transition-all duration-500 group-hover:scale-110`}
               alt={project.title}
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-500 flex items-center justify-center">
-              <div className="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-500 shadow-xl">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-white text-black flex items-center justify-center opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-500 shadow-xl">
                 {project.isPhoto ? (
-                  <span className="text-2xl font-bold">+</span>
+                  <span className="text-lg sm:text-xl md:text-2xl font-bold">+</span>
                 ) : (
-                  <Play fill="black" size={20} className="ml-1" />
+                  <Play fill="black" size={14} className="sm:w-4 sm:h-4 md:w-5 md:h-5 ml-0.5" />
                 )}
               </div>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <p className="text-[10px] font-bold text-brand-blue uppercase tracking-widest">{project.category}</p>
-              <h5 className="text-sm font-bold truncate">{project.title}</h5>
+            <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3 md:p-4 bg-gradient-to-t from-black via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <p className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-brand-blue uppercase tracking-widest">{project.category}</p>
+              <h5 className="text-[10px] sm:text-xs md:text-sm font-bold truncate">{project.title}</h5>
             </div>
           </div>
         ))}
@@ -401,14 +408,15 @@ const App: React.FC = () => {
               title={t.vertical} 
               projects={reelsProjects} 
               isVertical={true} 
-              onSelect={setSelectedVideo} 
+              onSelect={setSelectedVideo}
+              showAll={false}
             />
 
             <PortfolioSlider 
               title={t.horizontal} 
               projects={videoProjects} 
-              isVertical={false} 
-              onSelect={setSelectedVideo} 
+              isVertical={false}
+              onSelect={setSelectedVideo}
             />
           </div>
         </section>

@@ -7,7 +7,7 @@ export const Contact: React.FC = () => {
     <section className="py-32 px-6 bg-brand-black" id="contact">
       <div className="max-w-7xl mx-auto">
         <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-5xl md:text-6xl font-bold mb-6 uppercase">VAMOS COMEÇAR A <span className="text-brand-lime">EDITAR</span></h2>
+          <h2 className="text-4xl xs:text-5xl md:text-6xl font-bold mb-6 uppercase">VAMOS COMEÇAR A <span className="text-brand-lime">EDITAR</span></h2>
           <p className="text-brand-gray-text text-lg italic font-display uppercase tracking-widest">
             Pronto para elevar seu projeto? Entre em contato para um orçamento personalizado.
           </p>
