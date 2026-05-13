@@ -200,9 +200,18 @@ const App: React.FC = () => {
   const [lang, setLang] = useState<'pt' | 'en'>('pt');
 
   useEffect(() => {
-    const savedProjects = localStorage.getItem('ferrari_portfolio_v2');
-    setProjects(savedProjects ? normalizeProjects(JSON.parse(savedProjects)) : normalizeProjects(INITIAL_PROJECTS));
-    
+    // Carregar projetos da API
+    fetch('/api/projects')
+      .then(response => response.json())
+      .then(data => {
+        setProjects(normalizeProjects(data));
+      })
+      .catch(error => {
+        console.error('Erro ao carregar projetos:', error);
+        // Fallback para projetos iniciais se a API falhar
+        setProjects(normalizeProjects(INITIAL_PROJECTS));
+      });
+
     const savedLang = localStorage.getItem('ferrari_lang');
     if (savedLang === 'en' || savedLang === 'pt') {
       setLang(savedLang);
@@ -546,14 +555,30 @@ const App: React.FC = () => {
       {isAdminOpen && adminAuthenticated && (
         <AdminPanel 
           projects={projects} 
-          onSave={(newP) => {
-            setProjects(newP);
-            localStorage.setItem('ferrari_portfolio_v2', JSON.stringify(newP));
-            setIsAdminOpen(false);
-            if (window.location.pathname.replace(/\/+$/, '') === ADMIN_PATH.replace(/\/+$/, '')) {
-              window.history.replaceState(null, '', '/');
+          onSave={async (newP) => {
+            try {
+              const response = await fetch('/api/projects', {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newP),
+              });
+
+              if (response.ok) {
+                setProjects(newP);
+                setIsAdminOpen(false);
+                if (window.location.pathname.replace(/\/+$/, '') === ADMIN_PATH.replace(/\/+$/, '')) {
+                  window.history.replaceState(null, '', '/');
+                }
+              } else {
+                alert('Erro ao salvar projetos. Tente novamente.');
+              }
+            } catch (error) {
+              console.error('Erro ao salvar:', error);
+              alert('Erro ao salvar projetos. Verifique sua conexão.');
             }
-          }} 
+          }}
           onClose={closeAdminPanel} 
         />
       )}

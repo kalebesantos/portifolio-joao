@@ -1,0 +1,62 @@
+[
+  {
+    "id": "v1",
+    "title": "Projeto Vertical 1",
+    "category": "Reels / TikTok",
+    "thumbnail": "https://github.com/JoaoFerrari56/fotos-famosos/blob/main/thumb%20(3).jpg?raw=true",
+    "videoUrl": "https://player.vimeo.com/video/1157987222",
+    "section": "reels",
+    "orderPt": 0,
+    "orderEn": 0
+  },
+  {
+    "id": "v2",
+    "title": "Projeto Vertical 2",
+    "category": "Reels / TikTok",
+    "thumbnail": "https://github.com/JoaoFerrari56/fotos-famosos/blob/main/thumb%20(1).jpg?raw=true",
+    "videoUrl": "https://player.vimeo.com/video/1157987248",
+    "section": "reels",
+    "orderPt": 1,
+    "orderEn": 1
+  },
+  {
+    "id": "v3",
+    "title": "Projeto Vertical 3",
+    "category": "Reels / TikTok",
+    "thumbnail": "https://github.com/JoaoFerrari56/fotos-famosos/blob/main/thumb.jpg?raw=true",
+    "videoUrl": "https://player.vimeo.com/video/1157987281",
+    "section": "reels",
+    "orderPt": 2,
+    "orderEn": 2
+  },
+  {
+    "id": "v4",
+    "title": "Projeto Horizontal 1",
+    "category": "Comercial / YouTube",
+    "thumbnail": "https://vumbnail.com/1157987304.jpg",
+    "videoUrl": "https://player.vimeo.com/video/1157987304",
+    "section": "video",
+    "orderPt": 0,
+    "orderEn": 0
+  },
+  {
+    "id": "v5",
+    "title": "Projeto Horizontal 2",
+    "category": "Comercial / YouTube",
+    "thumbnail": "https://vumbnail.com/1148507945.jpg",
+    "videoUrl": "https://player.vumbnail.com/video/1148507945",
+    "section": "video",
+    "orderPt": 1,
+    "orderEn": 1
+  },
+  {
+    "id": "v6",
+    "title": "Projeto Horizontal 3",
+    "category": "Comercial / YouTube",
+    "thumbnail": "https://img.youtube.com/vi/YOuwM8aGApw/maxresdefault.jpg",
+    "videoUrl": "https://www.youtube.com/embed/YOuwM8aGApw?si=sC30TTxlJHGROg9r",
+    "section": "video",
+    "orderPt": 2,
+    "orderEn": 2
+  }
+]
