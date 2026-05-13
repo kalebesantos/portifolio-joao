@@ -152,7 +152,7 @@ const PortfolioSlider = ({ title, projects, isVertical, onSelect }: { title: str
           <div 
             key={project.id}
             onClick={() => onSelect(project)}
-            className={`flex-none snap-start group relative rounded-2xl overflow-hidden cursor-pointer border border-white/5 bg-black shadow-2xl transition-all duration-300 hover:border-brand-blue/40 ${isVertical ? 'w-[280px] md:w-[calc(33.333%-1rem)] aspect-[9/16]' : 'w-[300px] md:w-[calc(33.333%-1rem)] aspect-video'}`}
+            className={`flex-none snap-start group relative rounded-2xl overflow-hidden cursor-pointer border border-white/5 bg-black shadow-2xl transition-all duration-300 hover:border-brand-blue/40 ${isVertical ? 'w-[240px] md:w-[calc(28%-1rem)] aspect-[9/16]' : 'w-[260px] md:w-[calc(30%-1rem)] aspect-video'}`}
           >
             <img 
               src={project.thumbnail} 
@@ -187,7 +187,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const savedProjects = localStorage.getItem('ferrari_portfolio_v2');
-    setProjects(savedProjects ? JSON.parse(savedProjects) : INITIAL_PROJECTS);
+    setProjects(savedProjects ? normalizeProjects(JSON.parse(savedProjects)) : normalizeProjects(INITIAL_PROJECTS));
     
     const savedLang = localStorage.getItem('ferrari_lang');
     if (savedLang === 'en' || savedLang === 'pt') {
@@ -233,8 +233,13 @@ const App: React.FC = () => {
   };
 
   const duplicatedClients = [...WORKED_NAMES, ...WORKED_NAMES, ...WORKED_NAMES];
-  const reelsProjects = projects.filter(p => p.section === 'reels');
-  const videoProjects = projects.filter(p => p.section === 'video');
+  const getProjectOrder = (project: VideoProject) => (lang === 'pt' ? project.orderPt ?? 0 : project.orderEn ?? 0);
+  const reelsProjects = projects
+    .filter(p => p.section === 'reels')
+    .sort((a, b) => getProjectOrder(a) - getProjectOrder(b));
+  const videoProjects = projects
+    .filter(p => p.section === 'video')
+    .sort((a, b) => getProjectOrder(a) - getProjectOrder(b));
 
   return (
     <div className="bg-brand-black min-h-screen text-white selection:bg-brand-blue selection:text-white relative">

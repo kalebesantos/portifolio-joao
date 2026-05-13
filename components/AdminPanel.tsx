@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { VideoProject } from '../types';
 import { Plus, Trash2, Save, X, Edit2, Wand2, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
 
@@ -12,7 +12,14 @@ interface AdminPanelProps {
 type AdminFormData = Omit<VideoProject, 'id'> & { videoUrl: string };
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClose }) => {
-  const [localProjects, setLocalProjects] = useState<VideoProject[]>(projects);
+  const [localProjects, setLocalProjects] = useState<VideoProject[]>(() =>
+    projects.map((project, index) => ({
+      ...project,
+      orderPt: project.orderPt ?? index,
+      orderEn: project.orderEn ?? index,
+    }))
+  );
+  const [mode, setMode] = useState<'pt' | 'en'>('pt');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<AdminFormData>({
@@ -23,6 +30,50 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
     section: 'reels',
     isPhoto: false
   });
+
+  const getOrderValue = (project: VideoProject) => {
+    return mode === 'pt' ? (project.orderPt ?? 0) : (project.orderEn ?? 0);
+  };
+
+  const sortedLocalProjects = useMemo(() => {
+    return [...localProjects].sort((a, b) => {
+      const orderCompare = getOrderValue(a) - getOrderValue(b);
+      if (orderCompare !== 0) return orderCompare;
+      return a.title.localeCompare(b.title);
+    });
+  }, [localProjects, mode]);
+
+  const reorderSection = (section: 'reels' | 'video', sourceId: string, targetId: string) => {
+    const sectionItems = sortedLocalProjects.filter(item => item.section === section);
+    const sourceIndex = sectionItems.findIndex(item => item.id === sourceId);
+    const targetIndex = sectionItems.findIndex(item => item.id === targetId);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const updatedIds = sectionItems.map(item => item.id);
+    const [moved] = updatedIds.splice(sourceIndex, 1);
+    updatedIds.splice(targetIndex, 0, moved);
+
+    setLocalProjects(prev => prev.map(item => {
+      if (item.section !== section) return item;
+      const newIndex = updatedIds.indexOf(item.id);
+      if (newIndex === -1) return item;
+      return {
+        ...item,
+        ...(mode === 'pt' ? { orderPt: newIndex } : { orderEn: newIndex }),
+      } as VideoProject;
+    }));
+  };
+
+  const moveItem = (projectId: string, section: 'reels' | 'video', direction: -1 | 1) => {
+    const sectionItems = sortedLocalProjects.filter(item => item.section === section);
+    const currentIndex = sectionItems.findIndex(item => item.id === projectId);
+    if (currentIndex === -1) return;
+
+    const targetIndex = currentIndex + direction;
+    if (targetIndex < 0 || targetIndex >= sectionItems.length) return;
+
+    reorderSection(section, projectId, sectionItems[targetIndex].id);
+  };
 
   const getSuggestedThumbnail = (url: string, timeInSeconds: number = 0) => {
     if (!url) return '';
@@ -52,33 +103,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
     return '';
   };
 
-  const fetchVimeoThumbnail = async (url: string) => {
-    if (!url.includes('vimeo.com')) return '';
+  const handleThumbnailFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    try {
-      const videoId = url.split('/').pop()?.split('?')[0];
-      if (!videoId) return '';
-
-      const response = await fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${videoId}`);
-      const data = await response.json();
-      return data.thumbnail_url || '';
-    } catch (error) {
-      console.error('Erro ao buscar thumbnail do Vimeo:', error);
-      return '';
-    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setFormData(prev => ({ ...prev, thumbnail: result }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const autoExtractFrame = async (url: string) => {
     if (!url) return;
 
-    let thumbnailUrl = '';
-
-    if (url.includes('vimeo.com')) {
-      thumbnailUrl = await fetchVimeoThumbnail(url);
-    } else {
-      thumbnailUrl = getSuggestedThumbnail(url);
-    }
-
+    const thumbnailUrl = getSuggestedThumbnail(url);
     if (thumbnailUrl) {
       setFormData(prev => ({ ...prev, thumbnail: thumbnailUrl }));
     }
@@ -108,21 +148,44 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
     // Limpeza de URL para embed se necessário
     let finalUrl = formData.videoUrl;
     if (finalUrl && finalUrl.includes('vimeo.com') && !finalUrl.includes('player.vimeo.com')) {
-        const id = finalUrl.split('/').pop()?.split('?')[0];
-        finalUrl = `https://player.vimeo.com/video/${id}`;
+      const id = finalUrl.split('/').pop()?.split('?')[0];
+      finalUrl = `https://player.vimeo.com/video/${id}`;
     }
 
     if (editingId) {
-      setLocalProjects(prev => prev.map(p => p.id === editingId ? { ...formData, videoUrl: finalUrl, id: editingId } : p));
+      setLocalProjects(prev => {
+        const sectionItems = prev.filter(item => item.section === formData.section && item.id !== editingId);
+        const nextPt = sectionItems.length > 0 ? Math.max(...sectionItems.map(item => item.orderPt ?? 0)) + 1 : 0;
+        const nextEn = sectionItems.length > 0 ? Math.max(...sectionItems.map(item => item.orderEn ?? 0)) + 1 : 0;
+
+        return prev.map(p => {
+          if (p.id !== editingId) return p;
+          const sectionChanged = p.section !== formData.section;
+          return {
+            ...p,
+            ...formData,
+            videoUrl: finalUrl,
+            section: formData.section,
+            orderPt: sectionChanged ? nextPt : p.orderPt,
+            orderEn: sectionChanged ? nextEn : p.orderEn,
+          } as VideoProject;
+        });
+      });
       setEditingId(null);
     } else {
+      const sectionItems = localProjects.filter(item => item.section === formData.section);
+      const nextPt = sectionItems.length > 0 ? Math.max(...sectionItems.map(item => item.orderPt ?? 0)) + 1 : 0;
+      const nextEn = sectionItems.length > 0 ? Math.max(...sectionItems.map(item => item.orderEn ?? 0)) + 1 : 0;
       const newProject: VideoProject = {
         ...formData,
         videoUrl: finalUrl,
         id: Date.now().toString(),
+        orderPt: nextPt,
+        orderEn: nextEn,
       };
       setLocalProjects(prev => [...prev, newProject]);
     }
+
     setFormData({ title: '', category: '', thumbnail: '', videoUrl: '', section: 'reels', isPhoto: false });
   };
 
@@ -145,15 +208,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
     event.preventDefault();
     if (!draggingId || draggingId === targetId) return;
 
-    setLocalProjects(prev => {
-      const newProjects = [...prev];
-      const fromIndex = newProjects.findIndex(p => p.id === draggingId);
-      const toIndex = newProjects.findIndex(p => p.id === targetId);
-      if (fromIndex === -1 || toIndex === -1) return prev;
-      const [moved] = newProjects.splice(fromIndex, 1);
-      newProjects.splice(toIndex, 0, moved);
-      return newProjects;
-    });
+    const targetItem = sortedLocalProjects.find(item => item.id === targetId);
+    const draggedItem = sortedLocalProjects.find(item => item.id === draggingId);
+    if (!targetItem || !draggedItem || targetItem.section !== draggedItem.section) {
+      setDraggingId(null);
+      return;
+    }
+
+    reorderSection(targetItem.section, draggingId, targetId);
     setDraggingId(null);
   };
 
@@ -161,24 +223,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
     setDraggingId(null);
   };
 
-  const handleMoveUp = (index: number) => {
-    if (index > 0) {
-      setLocalProjects(prev => {
-        const newProjects = [...prev];
-        [newProjects[index - 1], newProjects[index]] = [newProjects[index], newProjects[index - 1]];
-        return newProjects;
-      });
-    }
+  const handleMoveUp = (projectId: string, section: 'reels' | 'video') => {
+    moveItem(projectId, section, -1);
   };
 
-  const handleMoveDown = (index: number) => {
-    if (index < localProjects.length - 1) {
-      setLocalProjects(prev => {
-        const newProjects = [...prev];
-        [newProjects[index], newProjects[index + 1]] = [newProjects[index + 1], newProjects[index]];
-        return newProjects;
-      });
-    }
+  const handleMoveDown = (projectId: string, section: 'reels' | 'video') => {
+    moveItem(projectId, section, 1);
   };
 
   const startEdit = (project: VideoProject) => {
@@ -269,29 +319,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
                       placeholder={formData.isPhoto ? "Deixe vazio para foto estática" : "Cole o link do Vimeo ou YouTube aqui..."}
                     />
                     {!formData.isPhoto && formData.videoUrl && (
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => autoExtractFrame(formData.videoUrl)}
-                          className="bg-brand-blue text-white px-4 py-2 text-xs uppercase tracking-[0.3em] rounded hover:bg-brand-blue/80 transition-all"
-                        >
-                          Atualizar Thumbnail Sugerida
-                        </button>
-                        {formData.videoUrl.includes('vimeo.com') && (
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              const thumbnail = await fetchVimeoThumbnail(formData.videoUrl);
-                              if (thumbnail) {
-                                setFormData(prev => ({ ...prev, thumbnail }));
-                              }
-                            }}
-                            className="bg-red-600 text-white px-4 py-2 text-xs uppercase tracking-[0.3em] rounded hover:bg-red-700 transition-all"
-                          >
-                            Puxar do Vimeo
-                          </button>
-                        )}
-                      </div>
+                      <div className="text-[10px] text-white/40">A miniatura é sugerida automaticamente com base no link do vídeo.</div>
                     )}
                   </div>
                   {!formData.isPhoto && (
@@ -396,10 +424,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
                   {/* Thumbnail Input and Preview */}
                   <div className="relative group" onDragOver={handleThumbnailDragOver} onDrop={handleThumbnailDrop}>
                     <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleThumbnailFileChange}
+                      className="w-full bg-brand-black border border-white/10 p-3 text-sm text-white file:bg-brand-blue file:text-white file:px-3 file:py-2 file:uppercase file:tracking-[0.3em] file:rounded-sm mb-3"
+                    />
+                    <input
                       value={formData.thumbnail}
                       onChange={e => setFormData({...formData, thumbnail: e.target.value})}
                       className="w-full bg-brand-black border border-white/10 p-3 text-sm focus:border-white/30 outline-none text-white mb-2"
-                      placeholder="URL da imagem ou será gerada automaticamente..."
+                      placeholder="URL da imagem ou upload local..."
                     />
                     {formData.thumbnail && (
                       <div className="aspect-video w-full rounded-sm border-2 border-brand-lime overflow-hidden bg-black mb-4 shadow-[0_0_15px_rgba(191,255,0,0.3)]">
@@ -434,13 +468,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
           </div>
 
           <div className="lg:col-span-2 space-y-4">
-            <div className="space-y-2">
-              <h3 className="text-white font-bold uppercase tracking-widest text-sm border-b border-white/10 pb-2">Seu Portfólio ({localProjects.length})</h3>
-              <p className="text-[10px] text-white/40">Arraste para mudar a ordem ou use as setas. Os Reels e Vídeos agora estão separados para facilitar a visualização.</p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-2">
+                <h3 className="text-white font-bold uppercase tracking-widest text-sm border-b border-white/10 pb-2">Seu Portfólio ({localProjects.length})</h3>
+                <p className="text-[10px] text-white/40">Arraste para mudar a ordem ou use as setas. Os Reels e Vídeos agora estão separados para facilitar a visualização.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase tracking-[0.35em] text-white/40">Modo de ordenação</span>
+                {(['pt', 'en'] as const).map(langMode => (
+                  <button
+                    key={langMode}
+                    type="button"
+                    onClick={() => setMode(langMode)}
+                    className={`px-3 py-2 uppercase text-[10px] border rounded ${mode === langMode ? 'bg-brand-lime text-black border-brand-lime' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`}
+                  >
+                    {langMode.toUpperCase()}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="grid grid-cols-1 gap-8">
-              {['reels', 'video'].map(sectionKey => {
-                const sectionItems = localProjects.filter(project => project.section === sectionKey);
+              {(['reels', 'video'] as const).map(sectionKey => {
+                const sectionItems = sortedLocalProjects.filter(project => project.section === sectionKey);
                 if (sectionItems.length === 0) return null;
 
                 return (
@@ -453,9 +502,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
                       <span className="text-[10px] uppercase tracking-[0.35em] text-brand-lime">Arraste para reordenar</span>
                     </div>
                     <div className="space-y-3">
-                      {sectionItems.map((project, index) => {
-                        const globalIndex = localProjects.findIndex(p => p.id === project.id);
-                        return (
+                      {sectionItems.map((project, index) => (
                           <div
                             key={project.id}
                             draggable
@@ -473,16 +520,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
                             </div>
                             <div className="flex-grow overflow-hidden">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="text-brand-lime text-xs font-bold">#{globalIndex + 1}</span>
+                                <span className="text-brand-lime text-xs font-bold">#{index + 1}</span>
                                 <h4 className="text-white font-bold text-sm truncate uppercase tracking-tighter">{project.title}</h4>
                               </div>
                               <p className="text-white/40 text-[9px] uppercase font-bold tracking-[0.2em]">{project.category}</p>
                             </div>
                             <div className="flex flex-col gap-1 items-end">
-                              <button title="Mover para cima" onClick={() => handleMoveUp(globalIndex)} className="p-2 text-white/30 hover:text-white transition-colors" disabled={globalIndex === 0}>
+                              <button title="Mover para cima" onClick={() => handleMoveUp(project.id, sectionKey)} className="p-2 text-white/30 hover:text-white transition-colors" disabled={index === 0}>
                                 <ArrowUp size={14} />
                               </button>
-                              <button title="Mover para baixo" onClick={() => handleMoveDown(globalIndex)} className="p-2 text-white/30 hover:text-white transition-colors" disabled={globalIndex === localProjects.length - 1}>
+                              <button title="Mover para baixo" onClick={() => handleMoveDown(project.id, sectionKey)} className="p-2 text-white/30 hover:text-white transition-colors" disabled={index === sectionItems.length - 1}>
                                 <ArrowDown size={14} />
                               </button>
                               <button title="Editar" onClick={() => startEdit(project)} className="p-2 text-white/30 hover:text-white transition-colors">
@@ -493,8 +540,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onSave, onClos
                               </button>
                             </div>
                           </div>
-                        );
-                      })}
+                      ))}
                     </div>
                   </div>
                 );

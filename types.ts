@@ -6,6 +6,8 @@ export interface VideoProject {
   thumbnail: string;
   videoUrl?: string; // Opcional para projetos que são apenas fotos
   section: 'reels' | 'video';
+  orderPt?: number;
+  orderEn?: number;
   followers?: string;
   isCustomDescription?: boolean;
   isPhoto?: boolean; // Novo campo para indicar se é uma foto
